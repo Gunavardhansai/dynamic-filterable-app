@@ -8,7 +8,7 @@ export default function App(){
     <div className="container">
       <div className="header">
         <h1>Dynamic Filterable List</h1>
-        <small className="small">Demo app — filters persist in URL, includes price slider, and a reusable useFetch hook</small>
+        
       </div>
 
       <FilterableList />

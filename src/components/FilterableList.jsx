@@ -1,20 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import products from "../data/products";
 
-// Mock data generator
-const mockItems = [
-  { id: 1, name: "Apple iPhone 14", category: "Electronics", price: 1200 },
-  { id: 2, name: "Samsung Galaxy S23", category: "Electronics", price: 999 },
-  { id: 3, name: "Nike Air Max", category: "Footwear", price: 150 },
-  { id: 4, name: "Leather Wallet", category: "Accessories", price: 45 },
-  { id: 5, name: "Dell XPS 13", category: "Electronics", price: 1400 },
-  { id: 6, name: "Office Chair", category: "Furniture", price: 220 },
-  { id: 7, name: "Running Shorts", category: "Clothing", price: 35 },
-  { id: 8, name: "Coffee Maker", category: "Home", price: 80 },
-  { id: 9, name: "Sunglasses", category: "Accessories", price: 120 },
-  { id: 10, name: "Adidas Trainers", category: "Footwear", price: 130 },
-  { id: 11, name: "Bookshelf", category: "Furniture", price: 180 },
-  { id: 12, name: "T-Shirt", category: "Clothing", price: 20 },
-];
 
 function uniqueCategories(items){
   const s = new Set(items.map(i=>i.category));
@@ -22,12 +8,15 @@ function uniqueCategories(items){
 }
 
 function parseNumberParam(val, fallback){
+  // treat null/undefined/empty-string as 'no value' -> use fallback
+  if(val === null || val === undefined) return fallback;
+  if(typeof val === 'string' && val.trim() === '') return fallback;
   const n = Number(val);
   return Number.isFinite(n) ? n : fallback;
 }
 
 export default function FilterableList(){
-  const items = mockItems;
+  const items = products;
 
   // read initial filter state from URL params
   const params = new URLSearchParams(window.location.search);
@@ -44,16 +33,21 @@ export default function FilterableList(){
   const [maxPrice, setMaxPrice] = useState(initialMaxPrice);
 
   // update URL when filters change
-  useEffect(()=>{
-    const p = new URLSearchParams();
-    if(nameFilter) p.set('name', nameFilter);
-    if(category && category !== 'All') p.set('category', category);
-    if(minPrice !== globalMin) p.set('minPrice', String(minPrice));
-    if(maxPrice !== globalMax) p.set('maxPrice', String(maxPrice));
-    const query = p.toString();
-    const newUrl = window.location.pathname + (query ? ('?' + query) : '');
-    window.history.replaceState({}, '', newUrl);
-  },[nameFilter, category, minPrice, maxPrice, globalMin, globalMax]);
+  useEffect(() => {
+    // debounce URL updates to avoid spamming history while user types
+    const handler = setTimeout(() => {
+      const q = [];
+      if(nameFilter) q.push('name=' + encodeURIComponent(nameFilter));
+      if(category && category !== 'All') q.push('category=' + encodeURIComponent(category));
+      if(minPrice != null) q.push('minPrice=' + String(minPrice));
+      if(maxPrice != null) q.push('maxPrice=' + String(maxPrice));
+      const query = q.join('&');
+      const newUrl = window.location.pathname + (query ? ('?' + query) : '');
+      window.history.replaceState({}, '', newUrl);
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(handler);
+  }, [nameFilter, category, minPrice, maxPrice, globalMin, globalMax]);
 
   const categories = useMemo(()=>['All', ...uniqueCategories(items)], [items]);
 
