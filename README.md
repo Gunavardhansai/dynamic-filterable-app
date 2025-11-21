@@ -141,7 +141,7 @@ npm run preview
 
 ## 👨‍💻 Author
 
-**Gunavardhan sai Putta**  
+**Grand Canyon**  
 Built as part of a React assessment challenge.  
 Demonstrates skills in component design, hooks, state management, and user experience.
 
